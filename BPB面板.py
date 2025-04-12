@@ -11,7 +11,7 @@ class DomainProcessorApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("域名处理工具 By Jeffern")
+        self.title("BPB节点处理工具 By Jeffern")
         self.geometry("500x350")
         self.resizable(False, False)
         self.configure(fg_color="#EAF6FC")  # 主背景色
@@ -171,9 +171,9 @@ class DomainProcessorApp(ctk.CTk):
 
                     if "." in domain:
                         url = (
-                            f"https://sub.keaeye.icu/sub?uuid=89b3cbba-e6ac-485a-9481-976a0415eab9&"
+                            f"https://dy.yomoh.ggff.net/sub?uuid=89b3cbba-e6ac-485a-9481-976a0415eab9&"
                             f"encryption=none&security=tls&sni={domain}&fp=random&type=ws&"
-                            f"host={domain}&path=%2Fproxyip%3DProxyIP.JP.CMLiussss.net"
+                            f"host={domain}&path=%2Fproxyip%3DProxyIP.Oracle.CMLiussss.net"
                         )
                         results.append(url)
 
