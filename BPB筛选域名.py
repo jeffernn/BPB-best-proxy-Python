@@ -1,0 +1,203 @@
+import customtkinter as ctk
+from tkinter import filedialog, messagebox
+import re
+import os
+from urllib.parse import urlparse, parse_qs
+import threading
+
+# 设置外观风格
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("blue")
+
+
+class DomainExtractorApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        self.title("域名提取工具 - By Jeffern")
+        self.geometry("500x580")
+        self.resizable(False, False)
+        self.configure(fg_color="#EAF6FC")  # 主背景色
+
+        # 图标标签
+        self.icon_label = ctk.CTkLabel(self, text="(=^･ω･^=)",
+                                       font=("Segoe UI", 22, "bold"),
+                                       text_color="#003E7E")
+        self.icon_label.pack(pady=(10, 0))
+
+        # 主标题
+        self.title_label = ctk.CTkLabel(self,
+                                        text="域名提取工具",
+                                        font=("Segoe UI", 16, "bold"),
+                                        text_color="#003E7E")
+        self.title_label.pack(pady=(0, 5))
+
+        # 卡片容器
+        self.card_frame = ctk.CTkFrame(self, corner_radius=16,
+                                       fg_color="#FFFFFF", width=440, height=400)
+        self.card_frame.pack(pady=10)
+
+        # 文件选择部分
+        self.create_file_selector()
+
+        # 域名后缀选择部分
+        self.suffix_vars = {}
+        self.create_suffix_selector()
+
+        # 进度条
+        self.progress = ctk.CTkProgressBar(self.card_frame, width=320)
+        self.progress.place(relx=0.5, rely=0.9, anchor="center")
+        self.progress.set(0)
+        self.progress.configure(fg_color="#D1EAFD", progress_color="#0077B6")
+
+        # 处理按钮
+        self.start_button = ctk.CTkButton(
+            self,
+            text="开始处理",
+            command=self.start_thread,
+            width=220,
+            height=40,
+            font=("Segoe UI", 12, "bold"),
+            fg_color="#4FC3F7",
+            hover_color="#81D4FA",
+            text_color="#003E7E",
+            corner_radius=12
+        )
+        self.start_button.pack(pady=(10, 5))
+
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+
+    def create_file_selector(self):
+        frame = ctk.CTkFrame(self.card_frame, fg_color="transparent")
+        frame.place(relx=0.5, rely=0.1, anchor="n", relwidth=0.9)
+
+        self.input_path = ctk.StringVar()
+
+        ctk.CTkLabel(frame, text="选择输入文件:",
+                     font=("Segoe UI", 12)).pack(side="left")
+        entry = ctk.CTkEntry(frame, textvariable=self.input_path, width=200)
+        entry.pack(side="left", padx=5)
+        ctk.CTkButton(frame, text="浏览", width=60,
+                      command=self.select_input_file).pack(side="left")
+
+    def create_suffix_selector(self):
+        frame = ctk.CTkFrame(self.card_frame, fg_color="transparent")
+        frame.place(relx=0.5, rely=0.25, anchor="n", relwidth=0.9)
+
+        ctk.CTkLabel(frame, text="选择域名后缀:",
+                     font=("Segoe UI", 12)).pack(anchor="w")
+
+        # 后缀及其默认选中状态
+        suffixes = [
+            ('.com', False), ('.cn', False), ('.net', False),
+            ('.org', False), ('us.kg', False), ('.edu', False),
+            ('.me', False), ('.top', False), ('.ir', False),
+            ('.cfd', False), ('.online', False), ('.cf', False),
+            ('.xyz', False), ('.mn', False), ('.sbs', False),
+            ('.cd.am', False), ('.pp.ua', False)
+        ]
+
+        check_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        check_frame.pack(fill="both", expand=True, pady=5)
+
+        cols = 4  # 分成4列显示
+        for i, (suffix, default) in enumerate(suffixes):
+            var = ctk.BooleanVar(value=default)
+            self.suffix_vars[suffix] = var
+            cb = ctk.CTkCheckBox(check_frame, text=suffix, variable=var,
+                                 text_color="#003E7E", checkbox_width=18,
+                                 checkbox_height=18)
+            cb.grid(row=i // cols, column=i % cols, sticky="w", padx=5, pady=2)
+
+    def select_input_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+        if file_path:
+            self.input_path.set(file_path)
+
+    def start_thread(self):
+        """在子线程中启动处理"""
+        self.start_button.configure(state="disabled")
+        threading.Thread(target=self.process_file).start()
+
+    def update_progress(self, value):
+        self.progress.set(value)
+        self.update_idletasks()
+
+    def process_file(self):
+        try:
+            # 验证输入
+            self.update_progress(0.1)
+            if not self.input_path.get():
+                messagebox.showerror("错误", "请先选择输入文件")
+                return
+
+            self.update_progress(0.2)
+            selected_suffixes = [s for s, v in self.suffix_vars.items() if v.get()]
+            if not selected_suffixes:
+                messagebox.showerror("错误", "请至少选择一个域名后缀")
+                return
+
+            # 读取文件
+            self.update_progress(0.3)
+            try:
+                with open(self.input_path.get(), "r", encoding="utf-8") as f:
+                    content = f.read()
+            except Exception as e:
+                messagebox.showerror("错误", f"文件读取失败: {str(e)}")
+                return
+
+            # 提取URL
+            self.update_progress(0.5)
+            url_pattern = re.compile(r'https?://\S+')
+            url_matches = url_pattern.findall(content)
+
+            # 过滤处理
+            self.update_progress(0.7)
+            results = []
+            for url in url_matches:
+                try:
+                    parsed = urlparse(url)
+                    query = parse_qs(parsed.query)
+                    if 'host' not in query:
+                        continue
+
+                    host = query['host'][0]
+                    if any(host.endswith(suffix) for suffix in selected_suffixes):
+                        results.append(url)
+                except Exception as e:
+                    print(f"解析失败: {url} - {str(e)}")
+
+            # 保存结果
+            self.update_progress(0.9)
+            save_dir = filedialog.askdirectory(title="选择保存目录")
+            if not save_dir:
+                return
+
+            save_path = os.path.join(save_dir, "BPB面板自选域名后缀节点.txt")
+            if os.path.exists(save_path):
+                overwrite = messagebox.askyesno("确认", "目标文件已存在，是否覆盖？")
+                if not overwrite:
+                    return
+
+            try:
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write("\n".join(results))
+                messagebox.showinfo("完成", f"成功导出 {len(results)} 条完整URL到\n{save_path}")
+            except Exception as e:
+                messagebox.showerror("错误", f"文件保存失败: {str(e)}")
+
+            self.update_progress(1.0)
+
+        except Exception as e:
+            messagebox.showerror("错误", f"处理过程中发生错误: {str(e)}")
+        finally:
+            self.start_button.configure(state="normal")
+            self.update_progress(0.0)
+
+    def on_close(self):
+        self.destroy()
+
+
+if __name__ == "__main__":
+    app = DomainExtractorApp()
+    app.mainloop()
