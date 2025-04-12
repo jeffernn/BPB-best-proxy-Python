@@ -108,7 +108,7 @@ class TXTNodeUploaderApp(ctk.CTk):
 
             # 步骤 5：提交节点数据
             self.update_status("正在提交节点数据...", 0.75)
-            target_url = "https://newss.newss.cc.ua/gotonews78910"
+            target_url = "https://ef7fa04a.python-aggregate-subscription.pages.dev/gotonews78910"
             driver.get(target_url)
             time.sleep(3)
 
