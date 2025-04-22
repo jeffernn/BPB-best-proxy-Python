@@ -106,7 +106,7 @@ class TXTNodeUploaderApp(ctk.CTk):
             self.active_drivers.append(driver)
 
             # 页面操作
-            driver.get("https://ef7fa04a.python-aggregate-subscription.pages.dev/gotonews78910")
+            driver.get("你节点的订阅链接")
             time.sleep(3)
             textarea = driver.find_element(By.CSS_SELECTOR, "textarea.editor")
             textarea.clear()
