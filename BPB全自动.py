@@ -31,9 +31,9 @@ class IntegratedBPBTool(ctk.CTk):
         self.active_drivers = []
 
         # 新增默认值
-        self.default_subscriber_url = "dy.yomoh.ggff.net"
-        self.default_proxy_id = "ProxyIP.Oracle.CMLiussss.net"
-        self.default_upload_url = "https://ef7fa04a.python-aggregate-subscription.pages.dev/gotonews78910"
+        self.default_subscriber_url = "dy.yomoh.ggff.net"  ##优选订阅器
+        self.default_proxy_id = "ProxyIP.Oracle.CMLiussss.net"  ##proxyip地址
+        self.default_upload_url = "你需要上传到的汇聚订阅地址"
 
         # 初始化界面
         self.create_gui_components()
