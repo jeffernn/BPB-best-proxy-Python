@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
 def fetch_and_save_ips():
-    url = "https://ip.164746.xyz/ipTop10.html"
+    url = "https://ip.164746.xyz/ipTop10.html" ##获取优选ip的网站
     try:
         response = requests.get(url)
         response.raise_for_status()
